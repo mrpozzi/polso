@@ -2,8 +2,12 @@ import urllib2
 from bs4 import BeautifulSoup
 #import sys
 #import os
-import couchdb
-import jsonlib2
+#import couchdb
+#import jsonlib2 as json
+import MySQLdb
+import re
+
+
 
 
 # Let's crawl
@@ -77,7 +81,10 @@ class ScrapeDepression:
         for name in self.blogLinks.keys():
             
             print "Reading {0} Blog".format(name)
-            self.blogPosts[name] = []
+            self.blogPosts[name] = dict()
+            self.blogPosts[name]['posts'] = []
+            self.blogPosts[name]['title'] = []
+            self.blogPosts[name]['date'] = []
             url = self.blogLinks[name]
             
             nPages = 1
@@ -112,10 +119,26 @@ class ScrapeDepression:
                                                 soup2 = BeautifulSoup(s2)
                                                 
                                                 # get the post content
-                                                for item2 in soup2.find_all('div'):
-                                                        if not item2.get('class') is None:
-                                                                if 'entry_content' in item2.get('class') :
-                                                                        self.blogPosts[name].append(item2.get_text().encode('utf8'))
+                                                for item2 in soup2.find_all('div', {"class": "entry_content"}):
+                                                        self.blogPosts[name]['posts'].append(item2.get_text().encode('utf8').replace('\n','').replace('\t',''))
+                                                        
+                                                for item2 in soup2.find_all('h1', {"class": "ipsType_pagetitle"}):
+                                                        self.blogPosts[name]['title'].append(item2.get_text().encode('utf8').replace('\n','').replace('\t',''))
+                                                        
+                                                #Marco# I noticed that "Posted by" is present only in div with type of class "desc", so I take just the class desc
+                                                for item2 in soup2.find_all('div', {"class": "desc"}):
+                                                        ## Extract the date
+                                                        text = item2.get_text()
+                                                        pat = re.compile(r'\s+')
+                                                        # Remove all space, tab and new line
+                                                        no_tab = pat.sub('', text)
+                                                        # Check if "Postedby" is present (now it's without space)
+                                                        if no_tab.find('Postedby')>=0:
+                                                                #print no_tab
+                                                                date = re.search(r'\d{2}\D{3,9}\d{4}', no_tab)
+                                                                self.blogPosts[name]['date'].append(date.string[date.start():date.end()])
+                                                
+                                                
                         # end loop on entries
                         # move to next page
                         next = False
@@ -153,9 +176,9 @@ scraper.getPosts()
 #sum([len(post) for post in blogPosts])
 
 
-#if __name__ == "__main__":
-#   scraper = ScrapeDepression()
-    #scraper.getLinks(HOMEURL,'pickledDepressionLinks')
-#    scraper.getLinks(HOMEURL)
-#    scraper.getPosts()
+if __name__ == "__main__":
+        scraper = ScrapeDepression()
+        #scraper.getLinks(HOMEURL,'pickledDepressionLinks')
+        scraper.getLinks(HOMEURL)
+        scraper.getPosts('pickledDepressionPosts')
 
