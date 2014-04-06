@@ -167,10 +167,10 @@ class ScrapeDepression:
 
 
 
-scraper = ScrapeDepression()
+#scraper = ScrapeDepression()
 #scraper.getLinks(HOMEURL,'pickledDepressionLinks')
-scraper.getLinks(HOMEURL)
-scraper.getPosts()
+#scraper.getLinks(HOMEURL)
+#scraper.getPosts()
 
 #[len(post) for post in blogPosts]
 #sum([len(post) for post in blogPosts])
