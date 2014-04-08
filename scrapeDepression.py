@@ -16,9 +16,10 @@ class ScrapeDepression:
     Sample use:
     scraper = scrapeDepression.ScrapeDepression()
     scraper.getLinks()
-    scraper.getPosts('pickledDepressionPosts')
-    #scraper.loadPosts('pickledDepressionPosts')
+    scraper.getPosts('pickledDepressionPosts.pkl')
+    #scraper.loadPosts('pickledDepressionPosts.pkl')
     scraper.createDB()
+    # scraper.topics() # coming soon #
     """
     
     def __init__(self):
@@ -84,6 +85,8 @@ class ScrapeDepression:
     
     def getPosts(self,fileName=''):
         
+        totalPosts = 0
+        
         print "Scraping Blogs"
         # loop on the blogs
         for name in self.blogLinks.keys():
@@ -95,8 +98,8 @@ class ScrapeDepression:
             self.blogPosts[name]['date'] = []
             url = self.blogLinks[name]
             
-            nPages = 1
-            nPosts = 1
+            nPages = 0
+            nPosts = 0
             
             # loop on the pages within the blog
             while 1:
@@ -110,7 +113,7 @@ class ScrapeDepression:
                         flob.close()
                         soup = BeautifulSoup(s)
                         
-                        nPages +=1
+                        nPages += 1
                         
                         # within the page we read we want to loop through the posts
                         for item in soup.find_all('h2', {"class": "ipsType_pagetitle"}):
@@ -120,6 +123,7 @@ class ScrapeDepression:
                             flob2 = urllib2.urlopen(link)
                             #print "Reading Post {0}\n".format(nPosts)
                             nPosts += 1
+                            totalPosts += 1
                             s2 = flob2.read()
                             flob2.close()
                             soup2 = BeautifulSoup(s2)
@@ -152,7 +156,8 @@ class ScrapeDepression:
                         for item in soup.find_all('link'):
                                 if not item.get('rel') is None:
                                         if 'next' in item.get('rel'):
-                                            link = item.get('href')
+                                            url = item.get('href')
+                                            next = True
 
                         # if there is a next page, of course...
                         if not next : #or urlOld==url
@@ -163,7 +168,9 @@ class ScrapeDepression:
                 except urllib2.HTTPError:
                     print "{0} blog has {1} post{2}\n".format(name,nPosts,'s' if nPosts>1 else '')
                     break
-
+        
+        print "{0} blog  post{1} read\n".format(totalPosts,'s' if totalPosts>1 else '')
+        
         if fileName != '':
             f = open(fileName,"wb")
             cPickle.dump(self.blogPosts,f)
@@ -187,6 +194,7 @@ class ScrapeDepression:
         CREATE USER 'luca'@'localhost';
         GRANT ALL PRIVILEGES ON *.* TO 'luca'@'localhost' WITH GRANT OPTION;
         CREATE SCHEMA depressiondb;
+        
         """
         # Open database connection
         db = MySQLdb.connect(host="localhost", # your host, usually localhost
