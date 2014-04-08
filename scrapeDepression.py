@@ -19,12 +19,13 @@ class ScrapeDepression:
     scraper.getPosts('pickledDepressionPosts.pkl')
     #scraper.loadPosts('pickledDepressionPosts.pkl')
     scraper.createDB()
-    # scraper.topics() # coming soon #
+    scraper.topics()
     """
     
     def __init__(self):
         self.blogPosts =  dict()
         self.blogLinks =  dict()
+        self.numPosts = 0
         
     def getLinks(self,url = "http://www.depressionforums.org/forums/blogs/?type=all",fileName=''):
         
@@ -85,7 +86,7 @@ class ScrapeDepression:
     
     def getPosts(self,fileName=''):
         
-        totalPosts = 0
+        page = 1
         
         print "Scraping Blogs"
         # loop on the blogs
@@ -123,7 +124,7 @@ class ScrapeDepression:
                             flob2 = urllib2.urlopen(link)
                             #print "Reading Post {0}\n".format(nPosts)
                             nPosts += 1
-                            totalPosts += 1
+                            self.numPosts += 1
                             s2 = flob2.read()
                             flob2.close()
                             soup2 = BeautifulSoup(s2)
@@ -145,7 +146,7 @@ class ScrapeDepression:
                                 if no_tab.find('Postedby')>=0:
                                     #print no_tab
                                     date = re.search(r'\d{2}\D{3,9}\d{4}', no_tab)
-                                    self.blogPosts[name]['date'].append(date.string[date.start():date.end()])
+                                    self.blogPosts[name]['date'].append(date.string[date.start():date.end()].encode('utf8'))
                         
                         
                         
@@ -158,6 +159,7 @@ class ScrapeDepression:
                                         if 'next' in item.get('rel'):
                                             url = item.get('href')
                                             next = True
+                                            
 
                         # if there is a next page, of course...
                         if not next : #or urlOld==url
@@ -169,7 +171,7 @@ class ScrapeDepression:
                     print "{0} blog has {1} post{2}\n".format(name,nPosts,'s' if nPosts>1 else '')
                     break
         
-        print "{0} blog  post{1} read\n".format(totalPosts,'s' if totalPosts>1 else '')
+        print "{0} blog  post{1} read\n".format(self.numPosts,'s' if self.numPosts>1 else '')
         
         if fileName != '':
             f = open(fileName,"wb")
@@ -179,6 +181,7 @@ class ScrapeDepression:
     
     def loadPosts(self,fileName):
         self.blogPosts = cPickle.load(open(fileName))
+        self.numPosts = sum([len(self.blogPosts[name]['post']) for name in self.blogPosts.keys()])
     
     
     def createDB(self):
@@ -238,6 +241,74 @@ class ScrapeDepression:
         
         # disconnect from server
         db.close()
+    
+    def topics(self,nTopic=100,batchsize = 64):
+        
+        """
+        Analyzes the blog posts using
+        onlineldavb.py: Package of functions for fitting Latent Dirichlet
+        Allocation (LDA) with online variational Bayes (VB).
+        
+        Copyright (C) 2010  Matthew D. Hoffman
+        """
+        
+        import cPickle, string, numpy, getopt, sys, random, time, re, pprint
+        import onlineldavb
+        
+        # The number of documents to analyze each iteration
+        
+        # The total number of documents in Wikipedia
+        D = self.numPosts
+        # The number of topics
+        K = nTopic
+        
+        # How many documents to look at
+        documentstoanalyze = int(D/batchsize)
+        
+        # Our vocabulary
+        vocab = file('./dictnostops.txt').readlines()
+        W = len(vocab)
+        
+        # Initialize the algorithm with alpha=1/K, eta=1/K, tau_0=1024, kappa=0.7
+        olda = onlineldavb.OnlineLDA(vocab, K, D, 1./K, 1./K, 1024., 0.7)
+        # Run until we've seen D documents. (Feel free to interrupt *much*
+        # sooner than this.)
+        #for iteration in range(0, docmentstoanalyze):
+        iteration = 0
+        doc_buffer = []
+        for name in self.blogPosts.keys():
+            
+            docset = self.blogPosts[name]['post']
+            
+            #docset batchsize
+            # Give them to online LDA
+            #print "{0} posts by {1}".format(len(docset),name)
+            if len(doc_buffer) !=0:
+                docset = docset + doc_buffer
+                doc_buffer = []
+            if len(docset) < batchsize:
+                doc_buffer = docset
+                continue
+                
+            
+            #(gamma, bound) = olda.update_lambda(corpus)
+            (gamma, bound) = olda.update_lambda(docset)
+            # Compute an estimate of held-out perplexity
+            #(wordids, wordcts) = onlineldavb.parse_doc_list(corpus, olda._vocab)
+            (wordids, wordcts) = onlineldavb.parse_doc_list(docset, olda._vocab)
+            #perwordbound = bound * len(corpus) / (D * sum(map(sum, wordcts)))
+            perwordbound = bound * len(docset) / (D * sum(map(sum, wordcts)))
+            print '%d:  rho_t = %f,  held-out perplexity estimate = %f' % (iteration, olda._rhot, numpy.exp(-perwordbound))
+            
+            # Save lambda, the parameters to the variational distributions
+            # over topics, and gamma, the parameters to the variational
+            # distributions over topic weights for the articles analyzed in
+            # the last iteration.
+            if (iteration % 10 == 0):
+                numpy.savetxt('lambda-%d.dat' % iteration, olda._lambda)
+                numpy.savetxt('gamma-%d.dat' % iteration, gamma)
+            
+            iteration += 1
 
 
 if __name__ == "__main__":
