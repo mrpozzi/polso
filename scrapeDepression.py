@@ -7,8 +7,7 @@ import MySQLdb
 import re
 import cPickle
 import numpy as np
-
-
+import string, getopt, sys, random, time, pprint
 
 class ScrapeDepression:
     """
@@ -215,7 +214,7 @@ class ScrapeDepression:
         sql = """CREATE TABLE DEPRESSION (
         NAME  CHAR(100) NOT NULL,
         DATE  CHAR(20),
-        TITLE  CHAR(100),
+        TITLE  CHAR(200) NOT NULL,
         POST  TEXT)"""
         
         cursor.execute(sql)
@@ -225,24 +224,27 @@ class ScrapeDepression:
             for k in np.arange(0,len(self.blogPosts[name]['date'])):
                 
                 # Prepare SQL query to INSERT a record into the database.
-                sql = """INSERT INTO DEPRESSION(NAME, DATE, TITLE, POST)
-                VALUES ('{0}', '{1}', '{2}', '{3}')""".format(name,self.blogPosts[name]['date'][k],
-                                                                    self.blogPosts[name]['title'][k],
-                                                                    self.blogPosts[name]['post'][k])
-                
+                #sql = """INSERT INTO DEPRESSION (NAME, DATE, TITLE, POST)
+                #VALUES ('{0}', '{1}', '{2}', '{3}')""".format(name,self.blogPosts[name]['date'][k],
+                #                                                    self.blogPosts[name]['title'][k],
+                #                                                    str(MySQLdb.escape_string(self.blogPosts[name]['post'][k])))
+                sql = """INSERT INTO DEPRESSION (NAME, DATE, TITLE, POST)
+                VALUES (%s, %s, %s, %s)"""
+                #print sql
                 try:
                     # Execute the SQL command
-                    cursor.execute(sql)
+                    cursor.execute(sql,(name,self.blogPosts[name]['date'][k],self.blogPosts[name]['title'][k],str(MySQLdb.escape_string(self.blogPosts[name]['post'][k]))))
                     # Commit your changes in the database
                     db.commit()
                 except:
                     # Rollback in case there is any error
                     db.rollback()
+                    print sql
         
         # disconnect from server
         db.close()
     
-    def topics(self,nTopic=100,batchsize = 64):
+    def topics(self,nTopic=100,batchsize = 64,stream=True):
         
         """
         Analyzes the blog posts using
@@ -251,26 +253,26 @@ class ScrapeDepression:
         
         Copyright (C) 2010  Matthew D. Hoffman
         """
-        
-        import cPickle, string, numpy, getopt, sys, random, time, re, pprint
-        import onlineldavb
-        
+                
         # The number of documents to analyze each iteration
         
-        # The total number of documents in Wikipedia
+        # The total number of blog posts
         D = self.numPosts
         # The number of topics
         K = nTopic
-        
-        # How many documents to look at
-        documentstoanalyze = int(D/batchsize)
         
         # Our vocabulary
         vocab = file('./dictnostops.txt').readlines()
         W = len(vocab)
         
-        # Initialize the algorithm with alpha=1/K, eta=1/K, tau_0=1024, kappa=0.7
-        olda = onlineldavb.OnlineLDA(vocab, K, D, 1./K, 1./K, 1024., 0.7)
+        if stream:
+            import streaminglda as ldavb
+            lda = ldavb.StreamingLDA(vocab, K, 1./K, 1./K)
+        else:
+            # Initialize the algorithm with alpha=1/K, eta=1/K, tau_0=1024, kappa=0.7
+            import onlineldavb as ldavb
+            lda = ldavb.OnlineLDA(vocab, K, D, 1./K, 1./K, 1024., 0.7)
+        
         # Run until we've seen D documents. (Feel free to interrupt *much*
         # sooner than this.)
         #for iteration in range(0, docmentstoanalyze):
@@ -290,23 +292,19 @@ class ScrapeDepression:
                 doc_buffer = docset
                 continue
                 
-            
-            #(gamma, bound) = olda.update_lambda(corpus)
-            (gamma, bound) = olda.update_lambda(docset)
+            (gamma, bound) = lda.update_lambda(docset)
             # Compute an estimate of held-out perplexity
-            #(wordids, wordcts) = onlineldavb.parse_doc_list(corpus, olda._vocab)
-            (wordids, wordcts) = onlineldavb.parse_doc_list(docset, olda._vocab)
-            #perwordbound = bound * len(corpus) / (D * sum(map(sum, wordcts)))
+            (wordids, wordcts) = ldavb.parse_doc_list(docset, lda._vocab)
             perwordbound = bound * len(docset) / (D * sum(map(sum, wordcts)))
-            print '%d:  rho_t = %f,  held-out perplexity estimate = %f' % (iteration, olda._rhot, numpy.exp(-perwordbound))
+            print '%d:  held-out perplexity estimate = %f' % (iteration, np.exp(-perwordbound))
             
             # Save lambda, the parameters to the variational distributions
             # over topics, and gamma, the parameters to the variational
             # distributions over topic weights for the articles analyzed in
             # the last iteration.
             if (iteration % 10 == 0):
-                numpy.savetxt('lambda-%d.dat' % iteration, olda._lambda)
-                numpy.savetxt('gamma-%d.dat' % iteration, gamma)
+                np.savetxt('lambda-%d.dat' % iteration, lda._lambda)
+                np.savetxt('gamma-%d.dat' % iteration, gamma)
             
             iteration += 1
 
