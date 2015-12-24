@@ -1,7 +1,7 @@
 import math
 from twython import Twython
 
-from iniTwitter import auth, stream
+from initialize_twitter import auth, stream
 
 ht = raw_input("Enter a search string: ")
 #ht = '#civoti'

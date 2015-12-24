@@ -26,7 +26,7 @@ class ScrapeDepression:
         self.blogLinks =  dict()
         self.numPosts = 0
         
-    def getLinks(self,url = "http://www.depressionforums.org/forums/blogs/?type=all",fileName=''):
+    def getLinks(self, url="http://www.depressionforums.org/forums/blogs/?type=all", fileName=''):
         
         n = 1
         

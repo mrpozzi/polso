@@ -2,7 +2,7 @@ import math
 from twython import Twython, exceptions as twyErr
 
 
-from iniTwitter import auth, stream
+from initialize_twitter import auth, stream
 
 user = raw_input("Enter Twitter handle to get followers of: ")
 #user = 'civati'
