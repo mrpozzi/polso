@@ -1,20 +1,19 @@
-from scrapy.contrib.spiders import CrawlSpider, Rule
-from bloombergSpider.items import BloombergNewsArticleItem
+from AmisScraper.items import WorldGrainNewsItem
 from scrapy.contrib.linkextractors.sgml import SgmlLinkExtractor
-from scrapy import log
+from scrapy.contrib.spiders import CrawlSpider, Rule
 
-class ArticleSpider(CrawlSpider):
+
+class WorldGrainSpider(CrawlSpider):
     #log.start(logfile='~/log.txt', loglevel=log.CRITICAL)
-    name="article"
-    allowed_domains = ["bloomberg.com"]
-    #start_urls = ["http://www.bloomberg.com/markets"]
-    start_urls = ["http://www.bloomberg.com"]
+    name = "worldgrain"
+    allowed_domains = ["world-grain.com"]
+    start_urls = ["http://www.world-grain.com"]
     rules = [
-        Rule(SgmlLinkExtractor(allow=('(/news/articles/)((?!:).)*$'),), callback="parse_item", follow=True)
+        Rule(SgmlLinkExtractor(allow=('(/articles/news_home/)((?!:).)*$'),), callback="parse_item", follow=True)
     ]
 
     def parse_item(self, response):
-        item = BloombergNewsArticleItem()
+        item = WorldGrainNewsItem()
         title = response.xpath('//title/text()')[0].extract()
         article = response.xpath('//p/text()').extract()
         print("Title is: "+title)
