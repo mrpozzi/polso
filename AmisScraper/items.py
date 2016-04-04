@@ -10,6 +10,7 @@ import scrapy
 
 class NewsArticleItem(scrapy.Item):
     title = scrapy.Field()
+    date = scrapy.Field()
     link = scrapy.Field()
     article = scrapy.Field()
     pass

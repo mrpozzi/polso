@@ -21,10 +21,8 @@ class AmisJsonPipeline(object):
     def process_item(self, item, spider):
         item_dict = dict(item)
         if 'article' in item_dict:
-            sanitized_article = [x for x in item_dict['article'] if len(x) > 2 and x not in self.stop_words]
-            sanitized_article = " ".join(sanitized_article)
-            item_dict['article'] = " ".join(sanitized_article)
-            #item_dict['article'] = sanitized_article
+            sanitized_article = " ".join([x for x in item_dict['article'] if len(x) > 2 and x not in self.stop_words])
+            item_dict['article'] = sanitized_article.encode('ascii', 'ignore')
         line = json.dumps(item_dict) + "\n"
         self.file.write(line)
         return item
