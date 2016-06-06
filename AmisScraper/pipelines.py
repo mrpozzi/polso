@@ -24,6 +24,7 @@ class AmisJsonPipeline(object):
             sanitized_article = " ".join([x for x in item_dict['article'] if len(x) > 2 and x not in self.stop_words])
             item_dict['article'] = sanitized_article.encode('ascii', 'ignore')
         line = json.dumps(item_dict) + "\n"
+        #if len(item_dict['article']) > 0:
         self.file.write(line)
         return item
 
