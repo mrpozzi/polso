@@ -17,7 +17,6 @@ class ScrapeDepression:
     scraper.get_posts('pickledDepressionPosts.pkl')
     #scraper.load_posts('pickledDepressionPosts.pkl')
     scraper.create_db()
-    scraper.topics()
     """
     
     def __init__(self):
@@ -226,70 +225,6 @@ class ScrapeDepression:
         
         # disconnect from server
         db.close()
-    
-    def topics(self, nTopic = 100, batchsize = 64, stream = True):
-        """
-        Analyzes the blog posts using
-        onlineldavb.py: Package of functions for fitting Latent Dirichlet
-        Allocation (LDA) with online variational Bayes (VB).
-        
-        Copyright (C) 2010  Matthew D. Hoffman
-        """
-                
-        # The number of documents to analyze each iteration
-        
-        # The total number of blog posts
-        D = self.num_posts
-        # The number of topics
-        K = nTopic
-        
-        # Our vocabulary
-        vocab = file('./dictnostops.txt').readlines()
-        W = len(vocab)
-        
-        if stream:
-            import streaminglda as ldavb
-            lda = ldavb.StreamingLDA(vocab, K, 1./K, 1./K)
-        else:
-            # Initialize the algorithm with alpha=1/K, eta=1/K, tau_0=1024, kappa=0.7
-            import onlineldavb as ldavb
-            lda = ldavb.OnlineLDA(vocab, K, D, 1./K, 1./K, 1024., 0.7)
-        
-        # Run until we've seen D documents. (Feel free to interrupt *much*
-        # sooner than this.)
-        # for iteration in range(0, docmentstoanalyze):
-        iteration = 0
-        doc_buffer = []
-        for name in self.blog_posts.keys():
-            
-            docset = self.blog_posts[name]['post']
-            
-            # docset batchsize
-            # Give them to online LDA
-            # print "{0} posts by {1}".format(len(docset),name)
-            if len(doc_buffer) !=0:
-                docset = docset + doc_buffer
-                doc_buffer = []
-            if len(docset) < batchsize:
-                doc_buffer = docset
-                continue
-                
-            (gamma, bound) = lda.update_lambda(docset)
-            # Compute an estimate of held-out perplexity
-            (wordids, wordcts) = ldavb.parse_doc_list(docset, lda._vocab)
-            perwordbound = bound * len(docset) / (D * sum(map(sum, wordcts)))
-            print '%d:  held-out perplexity estimate = %f' % (iteration, np.exp(-perwordbound))
-            
-            # Save lambda, the parameters to the variational distributions
-            # over topics, and gamma, the parameters to the variational
-            # distributions over topic weights for the articles analyzed in
-            # the last iteration.
-            if iteration % 10 == 0:
-                np.savetxt('lambda-%d.dat' % iteration, lda._lambda)
-                np.savetxt('gamma-%d.dat' % iteration, gamma)
-            
-            iteration += 1
-
 
 if __name__ == "__main__":
     """

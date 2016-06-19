@@ -8,30 +8,43 @@
 import json
 import pymongo
 import os
+from scrapy.exceptions import DropItem
+
+
 DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), 'resources'))
 
 
-class AmisJsonPipeline(object):
+class SanitizeArticlePipeline(object):
     def __init__(self):
-        self.file = open('items.json', 'wb')
         stf = open(DATA_DIR+'/stop_words.txt', 'r')
         stop_words = [line.rstrip('\n') for line in stf]
         self.stop_words = set(stop_words)
 
     def process_item(self, item, spider):
+        if 'article' in dict(item):
+            sanitized_article = " ".join([x for x in item['article'] if len(x) > 2 and x not in self.stop_words])
+            item['article'] = sanitized_article.encode('ascii', 'ignore')
+        if len(item['article']) > 0:
+            return item
+        else:
+            raise DropItem("Missing price in %s" % item)
+
+
+class AmisJsonPipeline(object):
+    def __init__(self):
+        self.file = open('amis_articles.json', 'ab')
+
+    def process_item(self, item, spider):
         item_dict = dict(item)
-        if 'article' in item_dict:
-            sanitized_article = " ".join([x for x in item_dict['article'] if len(x) > 2 and x not in self.stop_words])
-            item_dict['article'] = sanitized_article.encode('ascii', 'ignore')
+        item_dict['source'] = spider.name
         line = json.dumps(item_dict) + "\n"
-        #if len(item_dict['article']) > 0:
         self.file.write(line)
         return item
 
 
 class AmisMongoPipeline(object):
 
-    collection_name = 'scrapy_items'
+    collection_name = 'amis_items'
 
     def __init__(self, mongo_uri, mongo_db):
         self.mongo_uri = mongo_uri
@@ -52,5 +65,6 @@ class AmisMongoPipeline(object):
         self.client.close()
 
     def process_item(self, item, spider):
-        self.db[self.collection_name].insert(dict(item))
+        item_dict = dict(item)
+        self.db[self.collection_name].insert(item_dict)
         return item

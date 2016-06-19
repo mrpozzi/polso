@@ -5,10 +5,12 @@ import os
 from twitter import Twitter
 from twitter.oauth import OAuth, read_token_file
 
-# Go to http://twitter.com/apps/new to create an app and get these items
-# See also http://dev.twitter.com/pages/oauth_single_token
 
 class Credentials:
+    """
+    Go to http://twitter.com/apps/new to create an app and get these items
+    See also http://dev.twitter.com/pages/oauth_single_token
+    """
 
     def __init__(self):
         self.APP_KEY = ""

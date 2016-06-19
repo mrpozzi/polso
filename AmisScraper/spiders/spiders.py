@@ -10,8 +10,8 @@ from datetime import datetime
 
 class BloombergSpider(CrawlSpider):
     name = "bloomberg"
+    logf = open("bloomberg.log", "w")
     allowed_domains = ["bloomberg.com"]
-    # start_urls = ["http://www.bloomberg.com/markets"]
     start_urls = ["http://www.bloomberg.com"]
     rules = [
         Rule(LinkExtractor(allow='(/news/articles/)((?!:).)*$'), callback="parse_item", follow=True)
@@ -22,21 +22,24 @@ class BloombergSpider(CrawlSpider):
         title = response.xpath('//title/text()')[0].extract()
         article = response.xpath('//p/text()').extract()
         self.logger.info("Scraping Title: "+title)
-        item['title'] = title
-        item['article'] = article
-        item['link'] = response.url
-        raw_date = response.url.split("/")[-2]
-        date = datetime.strptime(raw_date, '%Y-%m-%d')
-        item['date'] = str(date)
-        return item
+        try:
+            item['title'] = title
+            item['article'] = article
+            item['link'] = response.url
+            raw_date = response.url.split("/")[-2]
+            date = datetime.strptime(raw_date, '%Y-%m-%d')
+            item['date'] = str(date)
+            return item
+        except Exception as e:
+            self.logf.write("Failed to scrape {0}: {1}\n".format(str(title), str(e)))
 
 
 class NoggersBlogSpider(CrawlSpider):
     name = "noggers"
+    logf = open("noggers.log", "w")
     allowed_domains = ["nogger-noggersblog.blogspot.it"]
     start_urls = ["http://nogger-noggersblog.blogspot.it/"]
     rules = [
-        # Rule(LinkExtractor(allow='(/news/articles/)((?!:).)*$'), callback="parse_item", follow=True)
         Rule(LinkExtractor(allow='((?!:).)*$'), callback="parse_item", follow=True)
     ]
 
@@ -48,18 +51,32 @@ class NoggersBlogSpider(CrawlSpider):
         item['title'] = title
         item['article'] = article
         item['link'] = response.url
-        raw_date = title.split("Nogger's Blog: ")[1]
-        date = datetime.strptime(raw_date, '%d-%b-%Y')
-        item['date'] = str(date)
-        return item
+        try:
+            token = filter(lambda x: '--' in x, article)
+            try:
+                raw_date = token[0].split(' -- ')[0]
+                date = datetime.strptime(raw_date, '%d/%M/%Y')
+            except (ValueError, IndexError):
+                try:
+                    raw_date = title.split("Nogger's Blog: ")[1]
+                    date = datetime.strptime(raw_date, '%d-%b-%Y')
+                except (ValueError, IndexError):
+                    date = ""
+            item['date'] = str(date)
+            return item
+        except Exception as e:
+            self.logf.write("Failed to scrape {0}: {1}\n".format(str(title), str(e)))
 
 
 class WorldGrainSpider(CrawlSpider):
     name = "worldgrain"
+    logf = open("worldgrain.log", "w")
     allowed_domains = ["world-grain.com"]
     start_urls = ["http://www.world-grain.com"]
     rules = [
-        Rule(LinkExtractor(allow='(/articles/news_home/)((?!:).)*$'), callback="parse_item", follow=True)
+        Rule(LinkExtractor(allow='(/articles/news_home/)((?!:).)*$'), callback="parse_item", follow=True),
+        Rule(LinkExtractor(allow='(/news_home/)((?!:).)*$'), callback="parse_item", follow=True),
+        Rule(LinkExtractor(allow='(/articles/)((?!:).)*$'), callback="parse_item", follow=True)
     ]
 
     def parse_item(self, response):
@@ -70,18 +87,23 @@ class WorldGrainSpider(CrawlSpider):
         item['title'] = title
         item['article'] = article
         item['link'] = response.url
-        raw_date = "{0}-{1}".format(response.url.split("/")[-2], response.url.split("/")[-3])
-        date = datetime.strptime(raw_date, '%m-%Y')
-        item['date'] = str(date)
-        return item
+        try:
+            raw_date = "{0}-{1}".format(response.url.split("/")[-2], response.url.split("/")[-3])
+            date = datetime.strptime(raw_date, '%m-%Y')
+            item['date'] = str(date)
+            return item
+        except Exception as e:
+            self.logf.write("Failed to scrape {0}: {1}\n".format(str(title), str(e)))
 
 
 class EuractivSpider(CrawlSpider):
     name = "euractiv"
+    logf = open("euractiv.log", "w")
     allowed_domains = ["www.euractiv.com"]
     start_urls = ["http://www.euractiv.com/sections/agriculture-food"]
     rules = [
-        Rule(LinkExtractor(allow='(/section/agriculture-food/news/)((?!:).)*$'), callback="parse_item", follow=True)
+        Rule(LinkExtractor(allow='(/section/agriculture-food/news/)((?!:).)*$'), callback="parse_item", follow=True),
+        Rule(LinkExtractor(allow='(/news/)((?!:).)*$'), callback="parse_item", follow=True)
     ]
 
     def parse_item(self, response):
@@ -92,14 +114,18 @@ class EuractivSpider(CrawlSpider):
         item['title'] = title
         item['article'] = article
         item['link'] = response.url
-        raw_date = article[2].replace(" ", "").replace("\n", "")
-        date = datetime.strptime(raw_date, '%m/%d/%Y')
-        item['date'] = str(date)
-        return item
+        try:
+            raw_date = article[3].replace(" ", "").replace("\n", "").replace("\t", "")
+            date = datetime.strptime(raw_date, '%d/%m/%Y')
+            item['date'] = str(date)
+            return item
+        except Exception as e:
+            self.logf.write("Failed to scrape {0}: {1}\n".format(str("title"), str(e)))
 
 
 class AgriMoneySpider(CrawlSpider):
     name = "agrimoney"
+    logf = open("agrimoney.log", "w")
     allowed_domains = ["www.agrimoney.com"]
     start_urls = ["http://www.agrimoney.com"]
     rules = [
@@ -115,6 +141,9 @@ class AgriMoneySpider(CrawlSpider):
         item['title'] = title.replace('Agrimoney.com | ', '')
         item['article'] = article
         item['link'] = response.url
-        date = datetime.strptime(raw_date.split(',')[1], ' %d %b %Y')
-        item['date'] = str(date)
-        return item
+        try:
+            date = datetime.strptime(raw_date.split(',')[1], ' %d %b %Y')
+            item['date'] = str(date)
+            return item
+        except Exception as e:
+            self.logf.write("Failed to scrape {0}: {1}\n".format(str(title), str(e)))
