@@ -62,9 +62,9 @@ COOKIES_ENABLED = False
 # Configure item pipelines
 # See http://scrapy.readthedocs.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-    'AmisScraper.pipelines.SanitizeArticlePipeline': 100,
-    'AmisScraper.pipelines.AmisJsonPipeline': 300,
-#    'AmisScraper.pipelines.AmisMongoPipeline': 500,
+    'AmisScraper.pipelines.DuplicatesPipeline': 100,
+    'AmisScraper.pipelines.SanitizeArticlePipeline': 300,
+    'AmisScraper.pipelines.AmisJsonPipeline': 500
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)

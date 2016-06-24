@@ -9,6 +9,3 @@ for spider in spiders:
     process.crawl(spider)
 process.start()
 
-
-
-

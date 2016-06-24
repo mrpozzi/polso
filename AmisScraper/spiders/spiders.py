@@ -3,10 +3,6 @@ from scrapy.linkextractors import LinkExtractor
 from scrapy.spiders import CrawlSpider, Rule
 from datetime import datetime
 
-# TODO: move all rules to a single file.
-# TODO: find a way to clean all the text.
-# TODO: add error handling (no silent failure...)
-
 
 class BloombergSpider(CrawlSpider):
     name = "bloomberg"
@@ -40,13 +36,13 @@ class NoggersBlogSpider(CrawlSpider):
     allowed_domains = ["nogger-noggersblog.blogspot.it"]
     start_urls = ["http://nogger-noggersblog.blogspot.it/"]
     rules = [
-        Rule(LinkExtractor(allow='((?!:).)*$'), callback="parse_item", follow=True)
+        Rule(LinkExtractor(allow='((?!:).)*html$'), callback="parse_item", follow=True)
     ]
 
     def parse_item(self, response):
         item = NewsArticleItem()
-        title = response.xpath('//title/text()')[0].extract()
-        article = response.xpath('//p/text()').extract()
+        title = response.xpath('//a/text()')[8].extract()
+        article = response.xpath('//div/text()').extract()
         self.logger.info("Scraping Title: "+title)
         item['title'] = title
         item['article'] = article
@@ -54,8 +50,8 @@ class NoggersBlogSpider(CrawlSpider):
         try:
             token = filter(lambda x: '--' in x, article)
             try:
-                raw_date = token[0].split(' -- ')[0]
-                date = datetime.strptime(raw_date, '%d/%M/%Y')
+                raw_date = token[0].split(' -- ')[0].replace('\n', '')
+                date = datetime.strptime(raw_date, '%d/%M/%y')
             except (ValueError, IndexError):
                 try:
                     raw_date = title.split("Nogger's Blog: ")[1]

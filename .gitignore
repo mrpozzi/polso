@@ -3,5 +3,6 @@
 *.pyc
 *.iml
 amis_articles.json
+amis_articles.jsonl
 *.log
 .DS_Store
