@@ -8,7 +8,7 @@
 import json
 import os
 from scrapy.exceptions import DropItem
-import fcntl
+import threading
 
 
 DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), 'resources'))
@@ -21,7 +21,7 @@ class DuplicatesPipeline(object):
 
     def process_item(self, item, spider):
         if item['link'] in self.ids_seen:
-            spider.logf.write("Duplicate item found: %s" % item)
+            spider.logf.write("Duplicate item found: %s\n" % item)
             raise DropItem("Duplicate item found: %s" % item)
         else:
             self.ids_seen.add(item['link'])
@@ -41,26 +41,30 @@ class SanitizeArticlePipeline(object):
     def process_item(self, item, spider):
         if 'article' in dict(item):
             sanitized_article = " ".join([x for x in item['article'] if self._check_stop_words(x)])
-            sanitized_article = sanitized_article.replace('\n', '')
+            sanitized_article = sanitized_article.replace('\n', '').replace('\t', ' ')
             item['article'] = sanitized_article.encode('ascii', 'ignore')
         if len(item['date']) == 0:
+            spider.logf.write("Empty Date in %s\n" % item)
             raise DropItem("Empty Date in %s" % item)
         elif len(item['article']) > 0:
             return item
         else:
-            spider.logf.write("Empty Article in %s" % item)
+            spider.logf.write("Empty Article in %s\n" % item)
             raise DropItem("Empty Article in %s" % item)
 
 
 class AmisJsonPipeline(object):
+    lock = threading.Lock()
+    datafile = open('amis_articles.jsonl', 'a')
+
     def __init__(self):
-        self.file = open('amis_articles.jsonl', 'ab')
+        pass
 
     def process_item(self, item, spider):
         item_dict = dict(item)
         item_dict['source'] = spider.name
         line = json.dumps(item_dict) + "\n"
-        fcntl.flock(self.file, fcntl.LOCK_EX)
-        self.file.write(line)
-        fcntl.flock(self.file, fcntl.LOCK_UN)
+        AmisJsonPipeline.lock.acquire()
+        AmisJsonPipeline.datafile.write(line)
+        AmisJsonPipeline.lock.release()
         return item

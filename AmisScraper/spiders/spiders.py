@@ -96,9 +96,9 @@ class EuractivSpider(CrawlSpider):
     name = "euractiv"
     logf = open("euractiv.log", "w")
     allowed_domains = ["www.euractiv.com"]
-    start_urls = ["http://www.euractiv.com/sections/agriculture-food"]
+    start_urls = ["http://www.euractiv.com"]
     rules = [
-        Rule(LinkExtractor(allow='(/section/agriculture-food/news/)((?!:).)*$'), callback="parse_item", follow=True),
+        Rule(LinkExtractor(allow='(/agriculture-food/news/)((?!:).)*$'), callback="parse_item", follow=True),
         Rule(LinkExtractor(allow='(/news/)((?!:).)*$'), callback="parse_item", follow=True)
     ]
 
@@ -123,16 +123,19 @@ class AgriMoneySpider(CrawlSpider):
     name = "agrimoney"
     logf = open("agrimoney.log", "w")
     allowed_domains = ["www.agrimoney.com"]
-    start_urls = ["http://www.agrimoney.com"]
+    start_urls = ["http://www.agrimoney.com", "http://www.agrimoney.com/search/news/"]
     rules = [
-        Rule(LinkExtractor(allow='(/news/)((?!:).)*$'), callback="parse_item", follow=True)
+        Rule(LinkExtractor(allow='(/news/)((?!:).)*html$$'), callback="parse_item", follow=True),
+        Rule(LinkExtractor(allow='(/feature/)((?!:).)*html$$'), callback="parse_item", follow=True),
+        Rule(LinkExtractor(allow='(/marketreport/)((?!:).)*html$$'), callback="parse_item", follow=True)
     ]
 
     def parse_item(self, response):
         item = NewsArticleItem()
         title = response.xpath('//title/text()')[0].extract()
-        raw_date = response.xpath('//font/text()')[2].extract() + response.xpath('//font/text()')[3].extract()
-        article = response.xpath('//td/font/p/text()').extract() + response.xpath('//td/font/p/font/text()').extract()
+        raw_date = response.xpath('//font/text()')[2].extract().split(',')[1] + \
+                   response.xpath('//font/text()')[3].extract().split(',')[0]
+        article = response.xpath('//p/text()').extract() + response.xpath('//p/font/text()').extract()
         self.logger.info("Scraping Title: "+title)
         item['title'] = title.replace('Agrimoney.com | ', '')
         item['article'] = article
@@ -141,5 +144,16 @@ class AgriMoneySpider(CrawlSpider):
             date = datetime.strptime(raw_date.split(',')[1], ' %d %b %Y')
             item['date'] = str(date)
             return item
-        except Exception as e:
-            self.logf.write("Failed to scrape {0}: {1}\n".format(str(title), str(e)))
+        except (ValueError, IndexError):
+            raw_date = response.xpath('//font/text()')[2].extract() + response.xpath('//font/text()')[3].extract()
+            try:
+                date = datetime.strptime(raw_date.split(',')[2], ' %d %b %Y')
+                item['date'] = str(date)
+                return item
+            except (ValueError, IndexError):
+                try:
+                    date = datetime.strptime(raw_date.split(',')[1], ' %d %b %Y')
+                    item['date'] = str(date)
+                    return item
+                except Exception as e:
+                    self.logf.write("Failed to scrape {0}: {1}\n".format(str(title), str(e)))

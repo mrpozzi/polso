@@ -7,5 +7,6 @@ spiders = ['bloomberg', 'noggers', 'worldgrain', 'euractiv', 'agrimoney']
 
 for spider in spiders:
     process.crawl(spider)
+
 process.start()
 
