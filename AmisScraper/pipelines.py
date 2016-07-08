@@ -9,6 +9,7 @@ import json
 import os
 from scrapy.exceptions import DropItem
 import threading
+import time
 
 
 DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), 'resources'))
@@ -55,7 +56,7 @@ class SanitizeArticlePipeline(object):
 
 class AmisJsonPipeline(object):
     lock = threading.Lock()
-    datafile = open('amis_articles.jsonl', 'a')
+    datafile = open('amis_articles_{0}.jsonl'.format(time.strftime("%d_%m_%Y")), 'a')
 
     def __init__(self):
         pass
