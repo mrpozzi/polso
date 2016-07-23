@@ -2,3 +2,6 @@
 .ipynb_checkpoints/
 *.pyc
 *.iml
+amis_articles*.jsonl
+*.log
+.DS_Store
