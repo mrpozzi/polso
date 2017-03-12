@@ -90,4 +90,8 @@ where the available spiders are
 * euractiv
 * agrimoney
 
+# Twitter scraper
+
+A new twitter scraper using Abby's list of followers.
+The data are taken from `data` folder 
 
