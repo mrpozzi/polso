@@ -93,18 +93,5 @@ where the available spiders are
 # Twitter scraper
 
 A new twitter scraper using Abby's list of followers.
-The xlsx file with the list of followers has been shared from Adam the 16Feb2017 and stored in the `data` folder.
-The script requires python3 and it is able to download all twitter from the creation of the account (information present in the xlsx file).
+The data are taken from `data` folder 
 
-The script works in two steps:
-
-```
-python3 twitter_scraper/scrape_from_list.py
-```
-This file create a json file for each follower with the ids of the twits.
-
-The second step download the actual data:
-
-```
-python3 twitter_scraper/get_metadata.py
-```
