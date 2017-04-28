@@ -5,4 +5,4 @@
 amis_articles*.jsonl
 *.log
 .DS_Store
-twitter_jsons*
+twitter_jsons/all_ids.json*
