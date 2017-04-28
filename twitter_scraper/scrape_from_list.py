@@ -25,7 +25,7 @@ delay = 1  # time to wait on each page load before reading the page
 driver = webdriver.Safari()  # options are Chrome() Firefox() Safari()
 
 # List of Abby's twitter followers 
-list_followers = pd.read_excel("data/Free_Twitter_Follower_Report_on_aabbassian_amis_(02_09_2017-02_16_2017_PST).xlsx", sheetname = "Follower List")
+list_followers = pd.read_excel("../data/Free_Twitter_Follower_Report_on_aabbassian_amis_(02_09_2017-02_16_2017_PST).xlsx", sheetname = "Follower List")
 
 # Df to dictionary
 followers = list_followers.set_index('Screen Name')['Created At'].to_dict()
