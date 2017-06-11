@@ -2,9 +2,9 @@ attrs==16.0.0
 cffi==1.7.0
 cryptography==1.4
 cssselect==0.9.2
-Cython==0.24.1
+Cython==0.25.2
 enum34==1.1.6
-feather-format==0.3.0
+#feather-format==0.3.0
 idna==2.1
 ipaddress==1.0.16
 lxml==3.6.1
