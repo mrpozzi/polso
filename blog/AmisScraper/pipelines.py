@@ -56,7 +56,7 @@ class SanitizeArticlePipeline(object):
 
 class AmisJsonPipeline(object):
     lock = threading.Lock()
-    datafile = open('amis_articles_{0}.jsonl'.format(time.strftime("%d_%m_%Y")), 'a')
+    datafile = open('blog_articles_{0}.jsonl'.format(time.strftime("%d_%m_%Y")), 'a')
 
     def __init__(self):
         pass

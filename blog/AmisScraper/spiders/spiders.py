@@ -6,7 +6,7 @@ from datetime import datetime
 
 class BloombergSpider(CrawlSpider):
     name = "bloomberg"
-    logf = open("bloomberg.log", "w")
+    logf = open("logs/bloomberg.log", "w")
     allowed_domains = ["bloomberg.com"]
     start_urls = ["http://www.bloomberg.com"]
     rules = [
@@ -34,7 +34,7 @@ class BloombergSpider(CrawlSpider):
 
 class NoggersBlogSpider(CrawlSpider):
     name = "noggers"
-    logf = open("noggers.log", "w")
+    logf = open("logs/noggers.log", "w")
     allowed_domains = ["nogger-noggersblog.blogspot.it"]
     start_urls = ["http://nogger-noggersblog.blogspot.it/"]
     rules = [
@@ -68,7 +68,7 @@ class NoggersBlogSpider(CrawlSpider):
 
 class WorldGrainSpider(CrawlSpider):
     name = "worldgrain"
-    logf = open("worldgrain.log", "w")
+    logf = open("logs/worldgrain.log", "w")
     allowed_domains = ["world-grain.com"]
     start_urls = ["http://www.world-grain.com"] + \
                  ["http://www.world-grain.com/News/Archive.aspx?page={0}&year={1}&month=0".format(i, j) \
@@ -98,7 +98,7 @@ class WorldGrainSpider(CrawlSpider):
 
 class EuractivSpider(CrawlSpider):
     name = "euractiv"
-    logf = open("euractiv.log", "w")
+    logf = open("logs/euractiv.log", "w")
     allowed_domains = ["www.euractiv.com"]
     start_urls = ["http://www.euractiv.com"]
     rules = [
@@ -125,7 +125,7 @@ class EuractivSpider(CrawlSpider):
 
 class AgriMoneySpider(CrawlSpider):
     name = "agrimoney"
-    logf = open("agrimoney.log", "w")
+    logf = open("logs/agrimoney.log", "w")
     allowed_domains = ["www.agrimoney.com"]
     start_urls = [
         "http://www.agrimoney.com",
