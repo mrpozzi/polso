@@ -20,20 +20,18 @@ def get_timeline(screen_name, t):
         # update the id of the oldest tweet less one
         oldest = all_tweets[-1]['id'] - 1
 
-        print "getting tweets before {0}".format(oldest)
+        print "getting tweets before https://twitter.com/{0}/status/{1}".format(screen_name, oldest)
 
         # all subsequent requests use the max_id param to prevent duplicates
         new_tweets = t.statuses.user_timeline(screen_name=screen_name, count=200, max_id=oldest)
 
         print "...{0} tweets downloaded so far [{1}]".format(len(all_tweets), screen_name)
 
-    tweets = [{'screen_name': screen_name,
-               'id': tweet['id'],
-               'created_at': tweet['created_at'],
-               'hashtags': tweet['entities']['hashtags'],
-               'user_mentions': tweet['entities']['user_mentions'],
-               'text': tweet['text'],
-              } for tweet in all_tweets]
+    tweets = pd.DataFrame([{'link': 'https://twitter.com/' + screen_name,
+                   'title': tweet['id'],
+                   'date': tweet['created_at'],
+                   'article': tweet['text'],
+                  } for tweet in all_tweets])
     return tweets
 
 
@@ -46,7 +44,8 @@ def get_timelines(followers):
                 all_tweets = all_tweets.append(tweets)
         except TwitterHTTPError:
             print >> sys.stderr, "No Response for id ", screen_name
-    all_tweets['created_at'] = pd.to_datetime(all_tweets['created_at'])
-    all_tweets['text'] = all_tweets['text'].apply(lambda x: x.encode('utf-8'))
-    all_tweets = all_tweets.set_index(all_tweets.id)
+    all_tweets['source'] = "twitter"
+    #all_tweets['created_at'] = pd.to_datetime(all_tweets['created_at'])
+    all_tweets['article'] = all_tweets['article'].apply(lambda x: x.encode('utf-8'))
+    #all_tweets = all_tweets.set_index(all_tweets.id)
     return all_tweets

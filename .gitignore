@@ -8,3 +8,4 @@ blog/logs/*.log
 .DS_Store
 twitter_jsons/all_ids.json*
 venv/
+twitter/data/twitter_timelines*.json*
