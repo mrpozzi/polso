@@ -1,20 +1,22 @@
 polso
 =====
 
-Tools for scraping Twitter/Facebook/WWW
+## Description
 
+The folder is now devided in two subfolders:
 
-# AMIS Scraper
+* blog
+* twitter
 
-This package contains tools for scraping data from
+In the `blog` folder the AmisScraper is performed, using as spiders:
+   * bloomberg.com
+   * nogger-noggersblog.blogspot.it
+   * world-grain.com
+   * euractiv.com
+   * agrimoney.com
 
-* bloomberg.com
-* nogger-noggersblog.blogspot.it
-* world-grain.com
-* euractiv.com
-* agrimoney.com
-
-in orrder to construct a crisis prediction model based on a sentiment index.
+In the `twitter` folder a scraper based on aabbassian's followers is performed
+ 
 
 ## Getting Started
 
@@ -69,42 +71,27 @@ environment.
 pip freeze > requirements.txt
 ```
 
-### Running the Scraper
+## Running the `blog` scraper
 
-The scraping Machine can be run automatically
+The scraping Machine can be run automatically, inside the `blog` folder
 
 ```
 python amis_runner.py
 ```
+
 or single sources can be scraped
 
 ```
 scrapy crawl <spider name>
 ```
 
-where the available spiders are
 
-* bloomberg
-* noggers
-* worldgrain
-* euractiv
-* agrimoney
+## Running the `twitter` scraper
 
-# Twitter scraper
+It is important to have the credential to access the Twitter API in `~/credentials.txt`
 
-A new twitter scraper using Abby's list of followers.
-The xlsx file with the list of followers has been shared from Adam the 16Feb2017 and stored in the `data` folder.
-The script requires python3 and it is able to download all twitter from the creation of the account (information present in the xlsx file).
-
-The script works in two steps:
+Inside the `twitter folder`
 
 ```
-python3 twitter_scraper/scrape_from_list.py
-```
-This file create a json file for each follower with the ids of the twits.
-
-The second step download the actual data:
-
-```
-python3 twitter_scraper/get_metadata.py
+python twitter_followers.py
 ```
