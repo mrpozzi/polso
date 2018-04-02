@@ -20,10 +20,11 @@ class Credentials:
 
     def read_from_file(self, file_name=os.path.expanduser('~')+"/nereus_credentials.txt"):
         credentials = dict()
-        credentials_file = file(file_name)
-        for line in file.readlines(credentials_file):
-            token = line.split("=")
-            credentials[token[0]] = token[1].replace("\n","")
+        #credentials_file = file(file_name)
+        with open(file_name) as credentials_file:
+            for line in credentials_file.readlines():
+                token = line.split("=")
+                credentials[token[0]] = token[1].replace("\n","")
         self.APP_KEY = credentials["APP_KEY"]
         self.APP_SECRET = credentials["APP_SECRET"]
         self.OAUTH_TOKEN = credentials["OAUTH_TOKEN"]
