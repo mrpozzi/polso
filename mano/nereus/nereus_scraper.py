@@ -15,7 +15,7 @@ TIDES_URL = 'http://tides.mobilegeographics.com/locations/5545.html'
 class TideScraper(object):
     
     def __init__(self):
-        self.tide_info = self.read_tides()
+        self._tide_info = self.read_tides()
     
     def _parse_tides(self, s):
         tokens = s.split('PDT')
@@ -39,7 +39,7 @@ class TideScraper(object):
         flob = urllib.request.urlopen(TIDES_URL)
         s = flob.read()
         flob.close()
-        soup = BeautifulSoup(s)
+        soup = BeautifulSoup(s, "lxml")
         tide_table = soup.findAll('pre', {'class':'predictions-table'})[0].get_text().split('\n')
         location = tide_table[0]
         tides = pd.DataFrame([self._parse_tides(tide) for tide in tide_table[3:-1]])
@@ -94,4 +94,4 @@ class TideScraper(object):
         return(out)
     
     def get_tides_info(self, ds = str(datetime.date.today() + datetime.timedelta(days=1))):
-        return self._format_tides_info(self.tide_info, ds)
+        return self._format_tides_info(self._tide_info, ds)
