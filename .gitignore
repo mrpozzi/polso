@@ -2,6 +2,10 @@
 .ipynb_checkpoints/
 *.pyc
 *.iml
-amis_articles*.jsonl
-*.log
+*~
+blog/amis_articles*.jsonl
+blog/logs/*.log
 .DS_Store
+twitter_jsons/all_ids.json*
+venv/
+twitter/data/twitter_timelines*.json*
