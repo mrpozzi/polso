@@ -10,7 +10,7 @@ from bs4 import BeautifulSoup
 
 NOAA_URL = 'https://tidesandcurrents.noaa.gov/stationhome.html?id=9414290#sensors'
 TIDES_URL = 'http://tides.mobilegeographics.com/locations/5545.html'
-
+MONTH_TIDES_URL = 'http://tides.mobilegeographics.com/calendar/month/5545.html'
 
 class TideScraper(object):
     
@@ -95,3 +95,30 @@ class TideScraper(object):
     
     def get_tides_info(self, ds = str(datetime.date.today() + datetime.timedelta(days=1))):
         return self._format_tides_info(self._tide_info, ds)
+    
+    def get_monthly_tides(self):
+        flob = urllib.request.urlopen(MONTH_TIDES_URL)
+        s = flob.read()
+        flob.close()
+        soup = BeautifulSoup(s, "lxml")
+        tide_table = soup.findAll('table')[0]#.get_text().split('\n')
+        
+        header = [h.get_text().strip() for h in tide_table.findAll('th')]
+        meat = [x.get_text().strip() for x in tide_table.findAll('td')]
+        
+        rows = []
+        while len(meat) > 0:
+            rows.append(pd.Series(meat[:len(header)]))
+            meat = meat[len(header):]
+        
+        monthly_tides = pd.concat(rows, axis=1).transpose()
+        monthly_tides.columns = header
+        
+        now = datetime.datetime.now()
+        monthly_tides.index = pd.Series(monthly_tides['Day']).apply(
+            lambda x: datetime.datetime(now.year, 
+                                        now.month,
+                                        int(x.split(' ')[-1])))
+        monthly_tides.drop(columns='Day', inplace=True)
+        
+        return monthly_tides
