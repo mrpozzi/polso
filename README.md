@@ -1,20 +1,22 @@
 polso
 =====
 
-Tools for scraping Twitter/Facebook/WWW
+## Description
 
+The folder is now devided in two subfolders:
 
-# AMIS Scraper
+* blog
+* twitter
 
-This package contains tools for scraping data from
+In the `blog` folder the AmisScraper is performed, using as spiders:
+   * bloomberg.com
+   * nogger-noggersblog.blogspot.it
+   * world-grain.com
+   * euractiv.com
+   * agrimoney.com
 
-* bloomberg.com
-* nogger-noggersblog.blogspot.it
-* world-grain.com
-* euractiv.com
-* agrimoney.com
-
-in orrder to construct a crisis prediction model based on a sentiment index.
+In the `twitter` folder a scraper based on aabbassian's followers is performed
+ 
 
 ## Getting Started
 
@@ -22,31 +24,74 @@ These instructions will get you a copy of the project up and running on your loc
 
 ### Prerequisities
 
-You need to install scrapy to run the scaper.
+`Virtualenv` is required to ensure the dependencies are identical accross
+different developers.
+
+First install `virtualenv`.
 
 ```
-pip install scrapy
+pip install virtualenv
 ```
 
-### Running the Scraper
+Then create the directory to store the packages.
 
-The scraping Machine can be run automatically
+```
+virtualenv venv/
+```
+
+After the `virtualenv` has been installed, we can then activate the
+`virtualenv`.
+
+```
+source venv/bin/activate
+```
+
+You should see your prompt modified with `(venv)` concatenated at the beginning.
+
+After the activation, you can then install the current dependency based on the
+`requirements.txt`.
+
+```
+pip install -r requirements.txt
+```
+
+Once you are done and finished working, deactivate the `virtualenv` by
+
+```
+deactivate
+```
+
+The `virtualenv` should be invoked every single time you start working on the
+project.
+
+To update the `requirement.txt`, simply run the following within the virtual
+environment.
+
+```
+pip freeze > requirements.txt
+```
+
+## Running the `blog` scraper
+
+The scraping Machine can be run automatically, inside the `blog` folder
 
 ```
 python amis_runner.py
 ```
+
 or single sources can be scraped
 
 ```
 scrapy crawl <spider name>
 ```
 
-where the available spiders are
 
-* bloomberg
-* noggers
-* worldgrain
-* euractiv
-* agrimoney
+## Running the `twitter` scraper
 
+It is important to have the credential to access the Twitter API in `~/credentials.txt`
 
+Inside the `twitter folder`
+
+```
+python twitter_followers.py
+```
