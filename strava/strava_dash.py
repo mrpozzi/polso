@@ -112,14 +112,11 @@ class StravaScraper(object):
         self.swims.groupby(self.swims.index.normalize()).distance.sum().plot(kind='bar', ax=axes[0], sharex=True, color='#E24A33')
         axes[0].axhline(4000, color='k', linestyle='--')
         axes[0].set_ylabel('Yards')
-        #axes[0].step([-1, max(np.where(my_swims.index.normalize().unique().month <= 1)[0])-0.5, 100.5], [0, 3000 / m_to_yd, 4000 / m_to_yd], color='k', linestyle='--')
-        
         
         self.swims.groupby(self.swims.index.normalize()).elapsed_time.sum().apply(lambda x: x / 3600).plot(kind='bar', ax=axes[1], color='#E24A33')
         axes[1].set_ylabel('Hours')
         axes[1].set_xlabel('Day')
         axes[1].axhline(1, color='k', linestyle='--')
-        #axes[1].step([-1, max(np.where(my_swims.index.normalize().unique().month <= 1)[0])-0.5, 100.5], [0, 1, 2], color='k', linestyle='--')
         
         return fig, axes
         
@@ -137,10 +134,7 @@ class StravaScraper(object):
         else:
             self.swims.groupby(self.swims['ds_{by}_ending'.format(by=by)]).distance.sum().plot(kind='bar', ax=axes[0], sharex=True, color='#E24A33')
             axes[0].axhline(yardage_goal, color='r', linestyle='--')
-            #axes[0].step([-1, 3.5, 7.5, 12.5, 16.5, 20.5, 24.5, 28.5, 36.5], 
-            #             [0, 28225, 32500, 31615, 31615, 31615, 35000, 33870, 33870], color='k', linestyle='--')
-        
-        #axes[0].axhline(28000 / m_to_yd, color='k', linestyle='--')
+
         axes[0].set_ylabel('Yards')
             
         if in_n_out:
@@ -148,7 +142,6 @@ class StravaScraper(object):
         else:
             self.swims.groupby(self.swims['ds_{by}_ending'.format(by=by)]).elapsed_time.sum().apply(lambda x: x / 3600).plot(kind='bar', ax=axes[1], color='#E24A33')
         
-        #axes[1].axhline(7.6, color='k', linestyle='--')
         axes[1].set_ylabel('Hours')
         axes[1].set_xlabel(by.capitalize())
         
@@ -165,15 +158,10 @@ class StravaScraper(object):
         axes[0].set_title('Hours by week')
         axes[1].set_title('Hours by month')
         
-        #axes[0].axhline(28000 / m_to_yd, color='k', linestyle='--')
-        #axes[0].set_ylabel('Yards')
-        
         full_training.groupby(['ds_week_ending', 'activity'])['elapsed_time'].sum().apply(lambda x: x / 3600).unstack().plot(kind='bar', ax=axes[0], sharex=True)
         
         full_training.groupby(['ds_month_ending', 'activity'])['elapsed_time'].sum().apply(lambda x: x / 3600).unstack().plot(kind='bar', ax=axes[1])
-
         
-        #axes[1].axhline(7.6, color='k', linestyle='--')
         axes[1].set_ylabel('Hours')
         axes[1].set_xlabel('Month')
         
