@@ -134,14 +134,13 @@ class StravaScraper(object):
         else:
             self.swims.groupby(self.swims['ds_{by}_ending'.format(by=by)]).distance.sum().plot(kind='bar', ax=axes[0], sharex=True, color='#E24A33')
             axes[0].axhline(yardage_goal, color='r', linestyle='--')
-        
+
         axes[0].set_ylabel('Yards')
             
         if in_n_out:
             self.swims.groupby(['ds_{by}_ending'.format(by=by), 'is_pool'])['elapsed_time'].sum().apply(lambda x: x / 3600).unstack().plot(kind='bar', ax=axes[1])
         else:
             self.swims.groupby(self.swims['ds_{by}_ending'.format(by=by)]).elapsed_time.sum().apply(lambda x: x / 3600).plot(kind='bar', ax=axes[1], color='#E24A33')
-        
         
         axes[1].set_ylabel('Hours')
         axes[1].set_xlabel(by.capitalize())
