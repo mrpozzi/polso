@@ -23,7 +23,7 @@ pyOpenSSL==16.0.0
 python-dateutil==2.5.3
 pytz==2016.6.1
 queuelib==1.4.2
-requests==2.11.1
+requests==2.20.0
 scons==2.3.4
 Scrapy==1.1.1
 service-identity==16.0.0
