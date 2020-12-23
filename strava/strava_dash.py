@@ -4,6 +4,9 @@ import json
 
 from stravalib.client import Client
 from stravalib import unithelper
+from stravaio import strava_oauth2
+#from stravaio import StravaIO
+
 
 import datetime
 import calendar
@@ -24,7 +27,9 @@ class StravaScraper(object):
         
         json_data=open(strava_credentials).read()
         credentials = json.loads(json_data)
-        self.client = Client(access_token=credentials['AccessToken'])
+        token = strava_oauth2(client_id=credentials["ClientId"], client_secret=credentials["ClientSecret"])
+        #self.client = StravaIO(access_token=token["access_token"])
+        self.client = Client(access_token=token['access_token'])
         
         self.swims = None
         self.in_out = None
@@ -35,18 +40,25 @@ class StravaScraper(object):
     def get_swims(self, after='2017-11-01', before='2018-09-05'):
         """
         """
+        # https://stackoverflow.com/questions/52880434/problem-with-access-token-in-strava-api-v3-get-all-athlete-activities
+        #activities = self.client.get_logged_in_athlete_activities(after=pd.to_datetime(after))
         activities = self.client.get_activities(after=after, before=before)
         
-        self.swims = pd.DataFrame([{'name':activity.name, 
-                                  'id': activity.id, 
-                                  'stroke_count': 2 * activity.average_cadence if activity.average_cadence is not None else None,
-                                  'average_speed':float(unithelper.meters_per_second(activity.average_speed)),
-                                  'elapsed_time':unithelper.timedelta_to_seconds(activity.elapsed_time), 
-                                  'start_date': activity.start_date,
-                                  'distance':float(unithelper.meters(activity.distance)) * self.M_TO_YD} for activity in activities if activity.type=='Swim'])
+        self.swims = pd.DataFrame([{'name':activity.name,
+                       'id': activity.id, 
+                       'temperature': unithelper.c2f(activity.average_temp) if activity.average_temp is not None else None,
+                       'stroke_count': 2 * activity.average_cadence if activity.average_cadence is not None else None,
+                       'average_speed':float(unithelper.meters_per_second(activity.average_speed)),
+                       'elapsed_time':activity.elapsed_time, 
+                       'start_date': activity.start_date_local,
+                       'distance':float(activity.distance)} for activity in activities
+                                   if activity.type=='Swim' #and 
+                                   #pd.to_datetime(activity.start_date_local) <= pd.to_datetime(before,  utc=True)
+                                  ])
+        
         self.swims = self.swims.set_index('start_date')
         self.swims.index = pd.DatetimeIndex(self.swims.index)
-        self.swims.index = self.swims.index.tz_convert('US/Pacific')
+        self.swims.index = self.swims.index.tz_localize('US/Pacific')
         self.swims['month'] = self.swims.index.month
         self.swims['month_name'] = self.swims['month'].apply(lambda x: calendar.month_abbr[x])
         self.swims['ds_week_ending'] = self.swims.index.to_period('W').end_time.floor('d')
