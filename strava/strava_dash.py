@@ -64,7 +64,7 @@ class StravaScraper(object):
         self.swims['ds_week_ending'] = self.swims.index.to_period('W').end_time.floor('d')
         self.swims['ds_month_ending'] = self.swims.index.to_period('M').end_time.floor('d')
         self.swims['is_pool'] = ['pool' if "[POOL]" in name else 'open water' for name in self.swims.name]
-        self.swims['hours']= self.swims.elapsed_time/3600
+        self.swims['hours']= self.swims.elapsed_time.apply(lambda x: x.seconds/3600)
         
         self.total_yards = int(self.swims.distance.sum())
         
